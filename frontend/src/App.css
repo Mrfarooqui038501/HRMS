@@ -1,0 +1,88 @@
+/* #root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+} */
+
+/* <<<<<<< HEAD
+
+=======
+<<<<<<< HEAD
+>>>>>>> ef71be341e19fab71fa0cd03109c3377c45419f8 */
+
+/* Custom Scrollbar for Sidebar and Main Content */
+::-webkit-scrollbar {
+  width: 8px; /* Adjust the width of the scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #2d3748; /* Darker background for track */
+  border-radius: 10px; /* Rounded corners for track */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #4a90e2; /* Blue color for thumb */
+  border-radius: 10px; /* Rounded corners for thumb */
+  border: 2px solid #2d3748; /* Border around the thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #357ab7; /* Darker blue on hover */
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: #30678b; /* Even darker blue on active */
+}
+
+::-webkit-scrollbar-button {
+  display: none; /* Remove scrollbar buttons */
+}
+
+/* Optional: Make the scrollbar thinner on smaller screens */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 6px; /* Thinner scrollbar on mobile */
+  }
+}
+/* <<<<<<< HEAD
+=======
+=======
+>>>>>>> 847334e61a7f7988e9617cf97b618da8399a4f1a
+>>>>>>> ef71be341e19fab71fa0cd03109c3377c45419f8 */

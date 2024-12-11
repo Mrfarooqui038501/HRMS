@@ -1,4 +1,4 @@
-const Goal = require("../models/goal");
+const Goal = require("../../models/performance/Goal");
 
 // Employee - Create a Goal
 exports.createGoal = async (req, res) => {

@@ -1,4 +1,4 @@
-const Leave = require("../models/leave");
+const Leave = require("../../models/employee/Leave");
 
 // Employee - Apply Leave
 exports.applyLeave = async (req, res) => {

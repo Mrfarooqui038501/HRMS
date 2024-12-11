@@ -1,4 +1,4 @@
-const Holiday = require("../models/holiday");
+const Holiday = require("../../models/employee/Holiday");
 
 // Admin - Add Holiday
 exports.addHoliday = async (req, res) => {

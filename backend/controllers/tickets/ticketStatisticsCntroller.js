@@ -1,4 +1,4 @@
-const TicketStatistics = require("../models/ticketStatistics");
+const TicketStatistics = require("../../models/tickets/ticketStactics");
 
 // Get Ticket Statistics
 exports.getTicketStatistics = async (req, res) => {

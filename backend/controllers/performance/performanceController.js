@@ -1,4 +1,4 @@
-const Performance = require("../models/performance");
+const Performance = require("../../models/performance/Performance");
 
 // Admin - Add Performance Score
 exports.addPerformance = async (req, res) => {

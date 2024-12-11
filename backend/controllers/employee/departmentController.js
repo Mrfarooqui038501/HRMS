@@ -1,4 +1,4 @@
-const Department = require("../models/department");
+const Department = require("../../models/employee/Department");
 
 // Admin - Add Department
 exports.addDepartment = async (req, res) => {

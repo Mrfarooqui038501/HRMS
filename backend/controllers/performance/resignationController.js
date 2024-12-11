@@ -1,4 +1,4 @@
-const Resignation = require("../models/resignation");
+const Resignation = require("../../models/performance/Resignation");
 
 // Employee - Submit Resignation
 exports.submitResignation = async (req, res) => {

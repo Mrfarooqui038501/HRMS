@@ -1,4 +1,4 @@
-const Training = require("../models/training");
+const Training = require("../../models/performance/Training");
 
 // Admin - Add Training
 exports.addTraining = async (req, res) => {

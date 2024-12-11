@@ -1,5 +1,5 @@
-const Ticket = require("../models/ticket");
-const TicketStatistics = require("../models/ticketStatistics");
+const Ticket = require("../../models/tickets/ticket");
+const TicketStatistics = require("../../models/tickets/ticketStactics");
 
 // Create a Ticket
 exports.createTicket = async (req, res) => {

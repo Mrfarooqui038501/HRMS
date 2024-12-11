@@ -1,4 +1,4 @@
-const Termination = require("../models/termination");
+const Termination = require("../../models/performance/Termination");
 
 // Admin - Terminate an Employee
 exports.terminateEmployee = async (req, res) => {

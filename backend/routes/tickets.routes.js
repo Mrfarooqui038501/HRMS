@@ -9,20 +9,20 @@ const router = express.Router();
 
 // Ticket Routes
 router.post("/tickets", ticketController.createTicket);
-router.get("/tickets", checkRole("Admin"), ticketController.getAllTickets);
-router.get("/my-tickets", checkRole("Client"), ticketController.getMyTickets);
-router.put("/tickets/status", checkRole("Admin"), ticketController.updateTicketStatus);
+router.get("/tickets",  ticketController.getAllTickets);
+router.get("/my-tickets",  ticketController.getMyTickets);
+router.put("/tickets/status",  ticketController.updateTicketStatus);
 
 // Message Routes
 router.post("/messages", messageController.addMessage);
 router.get("/messages/:ticketId", messageController.getMessagesForTicket);
 
 // Ticket Statistics Route
-router.get("/ticket-statistics", checkRole("Admin"), ticketStatsController.getTicketStatistics);
+router.get("/ticket-statistics",  ticketStatsController.getTicketStatistics);
 
 // User Routes
 router.get("/profile", userController.getUserProfile);
-router.get("/users", checkRole("Admin"), userController.getAllUsers);
-router.put("/users/role", checkRole("Admin"), userController.updateUserRole);
+router.get("/users",  userController.getAllUsers);
+router.put("/users/role",  userController.updateUserRole);
 
 module.exports = router;

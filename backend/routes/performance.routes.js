@@ -12,31 +12,31 @@ const trainingTypeController = require("../controllers/performance/trainingTypeC
 const router = express.Router();
 
 // Goal Routes
-router.post("/goals", checkRole("Employee"), goalController.createGoal);
-router.get("/goals", checkRole("Admin"), goalController.getAllGoals);
+router.post("/goals",  goalController.createGoal);
+router.get("/goals",  goalController.getAllGoals);
 
 // Performance Routes
-router.post("/performances", checkRole("Admin"), performanceController.addPerformance);
-router.get("/performances", checkRole("Admin"), performanceController.getAllPerformance);
+router.post("/performances",  performanceController.addPerformance);
+router.get("/performances", performanceController.getAllPerformance);
 
 // Resignation Routes
-router.post("/resignations", checkRole("Employee"), resignationController.submitResignation);
-router.get("/resignations", checkRole("Admin"), resignationController.getAllResignations);
+router.post("/resignations",  resignationController.submitResignation);
+router.get("/resignations",  resignationController.getAllResignations);
 
 // Termination Routes
-router.post("/terminations", checkRole("Admin"), terminationController.terminateEmployee);
-router.get("/terminations", checkRole("Admin"), terminationController.getAllTerminations);
+router.post("/terminations",  terminationController.terminateEmployee);
+router.get("/terminations",  terminationController.getAllTerminations);
 
 // Trainer Routes
-router.post("/trainers", checkRole("Admin"), trainerController.addTrainer);
-router.get("/trainers", checkRole("Admin"), trainerController.getAllTrainers);
+router.post("/trainers",  trainerController.addTrainer);
+router.get("/trainers",  trainerController.getAllTrainers);
 
 // Training Routes
-router.post("/trainings", checkRole("Admin"), trainingController.addTraining);
-router.get("/trainings", checkRole("Admin"), trainingController.getAllTrainings);
+router.post("/trainings",  trainingController.addTraining);
+router.get("/trainings",  trainingController.getAllTrainings);
 
 // Training Type Routes
-router.post("/training-types", checkRole("Admin"), trainingTypeController.addTrainingType);
-router.get("/training-types", checkRole("Admin"), trainingTypeController.getAllTrainingTypes);
+router.post("/training-types",  trainingTypeController.addTrainingType);
+router.get("/training-types",  trainingTypeController.getAllTrainingTypes);
 
 module.exports = router;

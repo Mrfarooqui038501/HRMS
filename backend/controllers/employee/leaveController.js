@@ -6,7 +6,7 @@ exports.applyLeave = async (req, res) => {
     const { leaveType, fromDate, toDate } = req.body;
 
     const leave = new Leave({
-      employeeId: req.user.id,
+      // employeeId: req.user.id,
       leaveType,
       fromDate,
       toDate,

@@ -10,6 +10,8 @@ const employeeSchema = new mongoose.Schema({
     enum: ["Employee", "Admin"], 
     default: "Employee" // Default role is 'Employee'
   },
+ 
+  
 });
 
 module.exports = mongoose.model("Employee", employeeSchema);

@@ -1,4 +1,4 @@
-const Designation = require("../models/designation");
+const Designation = require("../../models/employee/Designation")
 
 // Admin - Add Designation
 exports.addDesignation = async (req, res) => {

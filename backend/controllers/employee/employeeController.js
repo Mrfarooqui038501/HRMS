@@ -1,15 +1,26 @@
 const Employee = require("../../models/employee/Employee");
 
+
+
+
 // Admin - Add Employee
 exports.addEmployee = async (req, res) => {
   try {
     const { name, department, position, role } = req.body;
 
-    const employee = new Employee({ name, department, position, role });
+    const employee = new Employee({
+      name,
+      department,
+      position,
+      role,
+      // employeeId is auto-generated
+    });
+
     await employee.save();
 
-    res.status(201).json({ message: "Employee added", employee });
+    res.status(201).json({ message: "Employee added successfully", employee });
   } catch (error) {
+    console.error(error); // Log error for debugging
     res.status(500).json({ message: "Error adding employee", error });
   }
 };

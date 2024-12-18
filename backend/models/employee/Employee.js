@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid"); // Install with `npm install uuid`
 
 const employeeSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -8,10 +9,9 @@ const employeeSchema = new mongoose.Schema({
   role: { 
     type: String, 
     enum: ["Employee", "Admin"], 
-    default: "Employee" // Default role is 'Employee'
+    default: "Employee"
   },
- 
-  
+  employeeId: { type: String, unique: true, required: true, default: uuidv4 }, // Generate unique ID
 });
 
 module.exports = mongoose.model("Employee", employeeSchema);

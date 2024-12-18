@@ -5,10 +5,18 @@ const Attendance = require("../../models/employee/Attendance")
 // Employee - Add Attendance
 exports.addAttendance = async (req, res) => {
   try {
-    const { date, punchIn, punchOut, production, break: breakTime, overtime } = req.body;
+    const {
+      employeeId, // Get employeeId explicitly from request body
+      date,
+      punchIn,
+      punchOut,
+      production,
+      break: breakTime,
+      overtime,
+    } = req.body;
 
     const attendance = new Attendance({
-      employeeId: req.user.id, // Assuming logged-in user's ID is in req.user
+      employeeId, // Use employeeId directly
       date,
       punchIn,
       punchOut,
@@ -18,9 +26,10 @@ exports.addAttendance = async (req, res) => {
     });
 
     await attendance.save();
-    res.status(201).json({ message: "Attendance added", attendance });
+    res.status(201).json({ message: "Attendance added successfully", attendance });
   } catch (error) {
-    res.status(500).json({ message: "Error adding attendance", error });
+    console.error("Error details:", error); // Log the actual error to debug
+    res.status(500).json({ message: "Error adding attendance", error: error.message });
   }
 };
 

@@ -4,13 +4,14 @@ const TicketStatistics = require("../../models/tickets/ticketStactics");
 // Create a Ticket
 exports.createTicket = async (req, res) => {
   try {
-    const { subject, description, priority } = req.body;
+    const { subject, description,createdBy, priority } = req.body;
 
     const ticket = new Ticket({
       ticketId: `TICK-${Date.now()}`,
       subject,
       description,
-      createdBy: req.user.id, // Assuming logged-in user
+      // createdBy: req.user.id, // Assuming logged-in user
+      createdBy,
       priority,
     });
 

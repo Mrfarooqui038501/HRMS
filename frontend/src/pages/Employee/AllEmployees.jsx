@@ -1,42 +1,76 @@
-import React, { useState } from 'react';
-
-// Sample employee list (this can be dynamically fetched or passed as props)
-const initialEmployees = [
-  { id: 1, name: 'John Doe', department: 'HR', position: 'Manager', status: 'Active' },
-  { id: 2, name: 'Jane Smith', department: 'IT', position: 'Developer', status: 'Active' },
-  { id: 3, name: 'Alice Johnson', department: 'Marketing', position: 'Lead', status: 'Inactive' },
-  { id: 4, name: 'Bob Brown', department: 'Finance', position: 'Analyst', status: 'Active' },
-  { id: 5, name: 'Charlie White', department: 'Sales', position: 'Salesperson', status: 'Active' },
-];
+import React, { useState, useEffect } from 'react';
+import { employeeService, departmentService } from '../../api/axios';
 
 const AllEmployeesPage = () => {
-  const [employees, setEmployees] = useState(initialEmployees);
+  const [employees, setEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [designations, setDesignations] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredEmployees, setFilteredEmployees] = useState(employees);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
-    id: '',
     name: '',
     department: '',
     position: '',
-    status: 'Active',
+    status: 'ACTIVE',
   });
 
-  // Handle the search input change
+  useEffect(() => {
+    fetchEmployees();
+    fetchDepartments();
+    fetchDesignations();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      const data = await employeeService.getAllEmployees();
+      const formattedData = data.map((employee) => ({
+        ...employee,
+        department: employee.department?.name || employee.department,
+        position: employee.position?.title || employee.position,
+      }));
+      setEmployees(formattedData);
+      setFilteredEmployees(formattedData);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const data = await departmentService.getAllDepartments();
+      setDepartments(data);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
+
+  const fetchDesignations = async () => {
+    // Fetch designations from your backend
+    try {
+      const data = [
+        { id: 1, title: 'Software Engineer' },
+        { id: 2, title: 'HR Manager' },
+        { id: 3, title: 'Sales Lead' },
+      ]; // Replace with actual API call
+      setDesignations(data);
+    } catch (error) {
+      console.error('Error fetching designations:', error);
+    }
+  };
+
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
 
-    // Filter employees based on the search query (search by ID or Name)
     const filtered = employees.filter(
       (employee) =>
         employee.name.toLowerCase().includes(query) ||
-        employee.id.toString().includes(query)
+        (employee._id && employee._id.toString().includes(query))
     );
     setFilteredEmployees(filtered);
   };
 
-  // Handle the input changes for adding new employee
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewEmployee((prev) => ({
@@ -45,36 +79,39 @@ const AllEmployeesPage = () => {
     }));
   };
 
-  // Add new employee to the list
-  const handleAddEmployee = () => {
-    const newId = employees.length ? employees[employees.length - 1].id + 1 : 1;
-    setEmployees([
-      ...employees,
-      { ...newEmployee, id: newId },
-    ]);
-    setShowAddEmployeeModal(false); // Close the modal after adding employee
-    setNewEmployee({
-      id: '',
-      name: '',
-      department: '',
-      position: '',
-      status: 'Active',
-    }); // Reset the form
+  const handleAddEmployee = async () => {
+    try {
+      await employeeService.addEmployee(newEmployee);
+      await fetchEmployees();
+      setShowAddEmployeeModal(false);
+      setNewEmployee({
+        name: '',
+        department: '',
+        position: '',
+        status: 'ACTIVE',
+      });
+    } catch (error) {
+      console.error('Error adding employee:', error);
+    }
   };
 
-  // Toggle modal visibility
   const toggleAddEmployeeModal = () => {
     setShowAddEmployeeModal(!showAddEmployeeModal);
   };
 
-  // Handle removing employee
-  const handleRemoveEmployee = (id) => {
-    setEmployees(employees.filter((employee) => employee.id !== id));
+  const handleRemoveEmployee = async (id) => {
+    if (window.confirm('Are you sure you want to remove this employee?')) {
+      try {
+        await employeeService.removeEmployee(id);
+        await fetchEmployees();
+      } catch (error) {
+        console.error('Error removing employee:', error);
+      }
+    }
   };
 
   return (
     <div className="max-w-7xl mx-auto p-6 bg-gray-100 mt-10">
-      {/* Header Section */}
       <div className="flex justify-between mb-6">
         <h2 className="text-3xl font-bold text-gray-800">All Employees</h2>
         <button
@@ -85,7 +122,6 @@ const AllEmployeesPage = () => {
         </button>
       </div>
 
-      {/* Search Bar */}
       <div className="mb-6">
         <input
           type="text"
@@ -96,7 +132,6 @@ const AllEmployeesPage = () => {
         />
       </div>
 
-      {/* Employees Table */}
       <div className="bg-white p-6 rounded-md shadow-md">
         <table className="min-w-full table-auto border-collapse">
           <thead>
@@ -111,24 +146,24 @@ const AllEmployeesPage = () => {
           </thead>
           <tbody>
             {filteredEmployees.map((employee) => (
-              <tr key={employee.id}>
-                <td className="py-2 px-4 border-b">{employee.id}</td>
+              <tr key={employee._id}>
+                <td className="py-2 px-4 border-b">{employee.employeeId}</td>
                 <td className="py-2 px-4 border-b">{employee.name}</td>
                 <td className="py-2 px-4 border-b">{employee.department}</td>
                 <td className="py-2 px-4 border-b">{employee.position}</td>
                 <td className="py-2 px-4 border-b">
                   <span
-                    className={`py-1 px-2 rounded-full text-white ${
-                      employee.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
-                    }`}
+                    className={`px-2 py-1 rounded-full text-xs ${
+                      employee.status === 'ACTIVE' ? 'bg-green-500' : 'bg-red-500'
+                    } text-white`}
                   >
                     {employee.status}
                   </span>
                 </td>
                 <td className="py-2 px-4 border-b">
                   <button
-                    onClick={() => handleRemoveEmployee(employee.id)}
-                    className="text-red-500 hover:text-red-700"
+                    onClick={() => handleRemoveEmployee(employee._id)}
+                    className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
                   >
                     Remove
                   </button>
@@ -139,7 +174,6 @@ const AllEmployeesPage = () => {
         </table>
       </div>
 
-      {/* Add Employee Modal */}
       {showAddEmployeeModal && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-md shadow-md w-96">
@@ -159,38 +193,35 @@ const AllEmployeesPage = () => {
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">Department</label>
-              <input
-                type="text"
+              <select
                 name="department"
                 value={newEmployee.department}
                 onChange={handleInputChange}
                 className="w-full p-3 border border-gray-300 rounded-md"
-                placeholder="Enter Department"
-              />
+              >
+                <option value="">Select Department</option>
+                {departments.map((department) => (
+                  <option key={department.departmentId} value={department.name}>
+                    {department.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">Position</label>
-              <input
-                type="text"
+              <select
                 name="position"
                 value={newEmployee.position}
                 onChange={handleInputChange}
                 className="w-full p-3 border border-gray-300 rounded-md"
-                placeholder="Enter Position"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Status</label>
-              <select
-                name="status"
-                value={newEmployee.status}
-                onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-md"
               >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
+                <option value="">Select Position</option>
+                {designations.map((designation) => (
+                  <option key={designation.id} value={designation.title}>
+                    {designation.title}
+                  </option>
+                ))}
               </select>
             </div>
 

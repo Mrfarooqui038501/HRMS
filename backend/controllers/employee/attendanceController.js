@@ -34,11 +34,25 @@ exports.addAttendance = async (req, res) => {
 };
 
 // Admin - Get All Attendance
+// Admin - Get All Attendance
 exports.getAllAttendance = async (req, res) => {
   try {
-    const attendance = await Attendance.find().populate("employeeId", "name");
+    // Add query filters if needed
+    const { employeeName, month, year } = req.query;
+    const query = {};
+
+    if (employeeName) query['employeeId.name'] = new RegExp(employeeName, 'i');
+    if (month && year) {
+      query.date = {
+        $regex: `^${year}-${month.padStart(2, '0')}`, // Matches YYYY-MM format
+      };
+    }
+
+    const attendance = await Attendance.find(query).populate("employeeId", "name photo");
     res.status(200).json(attendance);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching attendance", error });
+    console.error("Error fetching attendance:", error.message);
+    res.status(500).json({ message: "Error fetching attendance", error: error.message });
   }
 };
+

@@ -1,30 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import { holidayService } from "../../api/axios";
 
 const Holiday = () => {
-  const [holidays, setHolidays] = useState([
-    { id: 1, name: 'New Year', date: '2024-01-01' },
-    { id: 2, name: 'Easter', date: '2024-04-09' },
-    { id: 3, name: 'Christmas', date: '2024-12-25' },
-  ]);
+  const [holidays, setHolidays] = useState([]);
+  const [newHoliday, setNewHoliday] = useState({ name: "", date: "" });
+  const [loading, setLoading] = useState(false);
 
-  const [newHoliday, setNewHoliday] = useState({ name: '', date: '' });
+  // Fetch all holidays on page load
+  useEffect(() => {
+    const fetchHolidays = async () => {
+      try {
+        const data = await holidayService.getAllHolidays();
+        setHolidays(data);
+      } catch (error) {
+        console.error("Error fetching holidays:", error);
+      }
+    };
 
-  const handleAddHoliday = () => {
+    fetchHolidays();
+  }, []);
+
+  // Add a new holiday
+  const handleAddHoliday = async () => {
     if (newHoliday.name && newHoliday.date) {
-      setHolidays([...holidays, { id: Date.now(), ...newHoliday }]);
-      setNewHoliday({ name: '', date: '' }); // Reset input fields
+      setLoading(true);
+      try {
+        const addedHoliday = await holidayService.addHoliday(newHoliday);
+        setHolidays([...holidays, addedHoliday.holiday]);
+        setNewHoliday({ name: "", date: "" });
+      } catch (error) {
+        console.error("Error adding holiday:", error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      alert("Please fill out both fields before adding a holiday.");
     }
   };
 
-  const handleRemoveHoliday = (id) => {
-    setHolidays(holidays.filter((holiday) => holiday.id !== id));
+  // Remove a holiday
+  const handleRemoveHoliday = async (id) => {
+    try {
+      await holidayService.removeHoliday(id);
+      setHolidays(holidays.filter((holiday) => holiday._id !== id));
+      alert("Holiday removed successfully!");
+    } catch (error) {
+      console.error("Error removing holiday:", error);
+      alert("Failed to remove holiday. Please try again.");
+    }
   };
+
+  
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 mt-10">
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">Holiday List</h2>
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+          Holiday List
+        </h2>
 
+        {/* New Holiday Form */}
         <div className="mb-4">
           <input
             type="text"
@@ -46,14 +81,15 @@ const Holiday = () => {
             onClick={handleAddHoliday}
             className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            Add Holiday
+            {loading ? "Adding..." : "Add Holiday"}
           </button>
         </div>
 
+        {/* Holiday List */}
         <div className="space-y-4">
           {holidays.map((holiday) => (
             <div
-              key={holiday.id}
+              key={holiday._id}
               className="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-md"
             >
               <div className="flex flex-col">
@@ -61,7 +97,7 @@ const Holiday = () => {
                 <span className="text-sm text-gray-600">{holiday.date}</span>
               </div>
               <button
-                onClick={() => handleRemoveHoliday(holiday.id)}
+                onClick={() => handleRemoveHoliday(holiday._id)}
                 className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 Remove

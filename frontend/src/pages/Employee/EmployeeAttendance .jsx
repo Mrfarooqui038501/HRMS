@@ -1,152 +1,187 @@
-import React, { useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { FiClock } from "react-icons/fi";
-// import Navbar from '../components/Navbar';
+import React, { useState, useEffect } from "react";
+import { attendanceService, employeeService } from "../../api/axios";
 
 const AttendancePage = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedMonth, setSelectedMonth] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [employees, setEmployees] = useState([]);
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [currentSession, setCurrentSession] = useState({
+    punchIn: null,
+    punchOut: null,
+    break: 0, // Total break time in minutes
+    production: 0, // Total production time in minutes
+    overtime: 0, // Overtime in minutes
+  });
 
-  const activities = [
-    { time: "10:00 AM", action: "Punch In" },
-    { time: "11:00 AM", action: "Punch Out" },
-    { time: "11:15 AM", action: "Punch In" },
-    { time: "1:30 PM", action: "Punch In" },
-    { time: "2:00 PM", action: "Punch Out" },
-    { time: "7:30 PM", action: "Punch Out" },
-  ];
+  // Fetch employees and attendance data
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setLoading(true);
+      try {
+        const employees = await employeeService.getAllEmployees();
+        setEmployees(employees);
 
-  const tableData = [
-    { date: "19 Feb 2019", punchIn: "10 AM", punchOut: "7 PM", production: "9 hrs", break: "1 hrs", overtime: "0" },
-    { date: "20 Feb 2019", punchIn: "10 AM", punchOut: "7 PM", production: "9 hrs", break: "1 hrs", overtime: "0" },
-  ];
+        const attendance = await attendanceService.getAllAttendance();
+        setAttendanceData(attendance);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  // Punch In
+  const handlePunchIn = async () => {
+    if (!selectedEmployee) {
+      alert("Please select an employee!");
+      return;
+    }
+    if (currentSession.punchIn) {
+      alert("Already punched in!");
+      return;
+    }
+
+    const now = new Date();
+    setCurrentSession((prev) => ({
+      ...prev,
+      punchIn: now,
+    }));
+  };
+
+  // Punch Out
+  const handlePunchOut = async () => {
+    if (!currentSession.punchIn) {
+      alert("You need to punch in first!");
+      return;
+    }
+
+    const now = new Date();
+    const sessionDuration = (now - currentSession.punchIn) / (1000 * 60); // Convert to minutes
+    const production = sessionDuration - currentSession.break;
+
+    const attendanceRecord = {
+      employeeId: selectedEmployee,
+      date: new Date().toISOString().split("T")[0], // Only the date part
+      punchIn: currentSession.punchIn.toLocaleTimeString(),
+      punchOut: now.toLocaleTimeString(),
+      production: `${Math.floor(production / 60)} hrs ${production % 60} mins`,
+      break: `${Math.floor(currentSession.break / 60)} hrs ${currentSession.break % 60} mins`,
+      overtime: `${Math.floor(currentSession.overtime / 60)} hrs ${currentSession.overtime % 60} mins`,
+    };
+
+    try {
+      await attendanceService.addAttendance(attendanceRecord);
+      setAttendanceData((prev) => [...prev, attendanceRecord]);
+      alert("Attendance recorded successfully!");
+    } catch (error) {
+      console.error("Error saving attendance:", error);
+    } finally {
+      setCurrentSession({
+        punchIn: null,
+        punchOut: null,
+        break: 0,
+        production: 0,
+        overtime: 0,
+      });
+    }
+  };
+
+  // Record Break
+  const handleBreak = () => {
+    if (!currentSession.punchIn) {
+      alert("You need to punch in first!");
+      return;
+    }
+    setCurrentSession((prev) => ({
+      ...prev,
+      break: prev.break + 15, // Assume 15-minute breaks
+    }));
+  };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen space-y-6 mt-10">
-      {/* Header */}
       <h1 className="text-3xl font-bold text-gray-800">Attendance</h1>
 
-      <div className="grid grid-cols-3 gap-6">
-        {/* Timesheet */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Timesheet 11 Mar 2019</h2>
-          <p className="text-gray-600">Punch In at</p>
-          <p className="font-medium text-gray-800">Wed, 11th Mar 2019 10:00 AM</p>
-          <div className="my-6 flex items-center justify-center">
-            <div className="text-4xl font-bold">3.45 hrs</div>
-          </div>
-          <button className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full">Punch Out</button>
-          <div className="flex justify-between mt-4">
-            <p className="text-gray-600">Break: <span className="font-bold">1.21 hrs</span></p>
-            <p className="text-gray-600">Overtime: <span className="font-bold">3 hrs</span></p>
-          </div>
-        </div>
-
-        {/* Statistics */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Statistics</h2>
-          {[
-            { label: "Today", current: 3.45, total: 8, color: "bg-orange-400" },
-            { label: "This Week", current: 28, total: 40, color: "bg-yellow-400" },
-            { label: "This Month", current: 90, total: 160, color: "bg-green-400" },
-            { label: "Remaining", current: 90, total: 160, color: "bg-red-400" },
-            { label: "Overtime", current: 4, total: 10, color: "bg-blue-400" },
-          ].map((stat, index) => (
-            <div key={index} className="mb-4">
-              <div className="flex justify-between">
-                <span className="text-gray-600">{stat.label}</span>
-                <span className="text-gray-600">
-                  {stat.current} / {stat.total}
-                </span>
-              </div>
-              <div className="w-full h-2 bg-gray-200 rounded-full">
-                <div
-                  className={`h-2 rounded-full ${stat.color}`}
-                  style={{ width: `${(stat.current / stat.total) * 100}%` }}
-                ></div>
-              </div>
-            </div>
+      {/* Employee Selector */}
+      <div className="mb-4">
+        <label htmlFor="employee" className="block mb-2 text-gray-700">
+          Select Employee
+        </label>
+        <select
+          id="employee"
+          value={selectedEmployee}
+          onChange={(e) => setSelectedEmployee(e.target.value)}
+          className="w-full p-2 border rounded-lg"
+        >
+          <option value="">Select Employee</option>
+          {employees.map((employee) => (
+            <option key={employee._id} value={employee._id}>
+              {employee.name}
+            </option>
           ))}
-        </div>
-
-        {/* Today's Activity */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Today Activity</h2>
-          <ul className="space-y-4">
-            {activities.map((activity, index) => (
-              <li key={index} className="flex items-center space-x-2">
-                <FiClock className="text-gray-500" />
-                <span className="text-gray-800 font-medium">{activity.action} at</span>
-                <span className="text-gray-600">{activity.time}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        </select>
       </div>
 
-      {/* Table Section */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <div className="flex space-x-4 mb-4">
-          <DatePicker
-            selected={selectedDate}
-            onChange={(date) => setSelectedDate(date)}
-            className="border px-3 py-2 rounded-lg"
-          />
-          <select
-            className="border px-3 py-2 rounded-lg"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-          >
-            <option value="">Select Month</option>
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i} value={i + 1}>
-                {new Date(0, i).toLocaleString("default", { month: "long" })}
-              </option>
-            ))}
-          </select>
-          <select
-            className="border px-3 py-2 rounded-lg"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-          >
-            <option value="">Select Year</option>
-            {[2023, 2024, 2025].map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-          <button className="bg-green-500 text-white px-4 py-2 rounded-lg">Search</button>
-        </div>
+      {/* Actions */}
+      <div className="flex space-x-4">
+        <button
+          onClick={handlePunchIn}
+          className="bg-green-500 text-white px-4 py-2 rounded-lg"
+        >
+          Punch In
+        </button>
+        <button
+          onClick={handlePunchOut}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+        >
+          Punch Out
+        </button>
+        <button
+          onClick={handleBreak}
+          className="bg-yellow-500 text-white px-4 py-2 rounded-lg"
+        >
+          Take Break
+        </button>
+      </div>
 
-        <table className="table-auto w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="px-4 py-2 border border-gray-300">#</th>
-              <th className="px-4 py-2 border border-gray-300">Date</th>
-              <th className="px-4 py-2 border border-gray-300">Punch In</th>
-              <th className="px-4 py-2 border border-gray-300">Punch Out</th>
-              <th className="px-4 py-2 border border-gray-300">Production</th>
-              <th className="px-4 py-2 border border-gray-300">Break</th>
-              <th className="px-4 py-2 border border-gray-300">Overtime</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tableData.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-50">
-                <td className="px-4 py-2 border border-gray-300">{index + 1}</td>
-                <td className="px-4 py-2 border border-gray-300">{row.date}</td>
-                <td className="px-4 py-2 border border-gray-300">{row.punchIn}</td>
-                <td className="px-4 py-2 border border-gray-300">{row.punchOut}</td>
-                <td className="px-4 py-2 border border-gray-300">{row.production}</td>
-                <td className="px-4 py-2 border border-gray-300">{row.break}</td>
-                <td className="px-4 py-2 border border-gray-300">{row.overtime}</td>
+      {/* Attendance Table */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <table className="table-auto w-full border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-4 py-2 border border-gray-300">#</th>
+                <th className="px-4 py-2 border border-gray-300">Employee</th>
+                <th className="px-4 py-2 border border-gray-300">Date</th>
+                <th className="px-4 py-2 border border-gray-300">Punch In</th>
+                <th className="px-4 py-2 border border-gray-300">Punch Out</th>
+                <th className="px-4 py-2 border border-gray-300">Production</th>
+                <th className="px-4 py-2 border border-gray-300">Break</th>
+                <th className="px-4 py-2 border border-gray-300">Overtime</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {attendanceData.map((row, index) => (
+                <tr key={row._id || index} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 border border-gray-300">{index + 1}</td>
+                  <td className="px-4 py-2 border border-gray-300">{row.employeeName || "N/A"}</td>
+                  <td className="px-4 py-2 border border-gray-300">{new Date(row.date).toLocaleDateString()}</td>
+                  <td className="px-4 py-2 border border-gray-300">{row.punchIn}</td>
+                  <td className="px-4 py-2 border border-gray-300">{row.punchOut}</td>
+                  <td className="px-4 py-2 border border-gray-300">{row.production}</td>
+                  <td className="px-4 py-2 border border-gray-300">{row.break}</td>
+                  <td className="px-4 py-2 border border-gray-300">{row.overtime}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

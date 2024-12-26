@@ -3,11 +3,11 @@ const Message = require("../../models/tickets/message");
 // Add a Message to a Ticket
 exports.addMessage = async (req, res) => {
   try {
-    const { ticketId, message } = req.body;
+    const { ticketId, user, message } = req.body;
 
     const newMessage = new Message({
       ticket: ticketId,
-      user: req.user.id,
+      user,
       message,
     });
 

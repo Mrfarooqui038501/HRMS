@@ -3,10 +3,10 @@ const Resignation = require("../../models/performance/Resignation");
 // Employee - Submit Resignation
 exports.submitResignation = async (req, res) => {
   try {
-    const { resignationDate, noticeDate, reason } = req.body;
+    const { employee,resignationDate, noticeDate, reason } = req.body;
 
     const resignation = new Resignation({
-      employee: req.user.id,
+      employee,
       resignationDate,
       noticeDate,
       reason,

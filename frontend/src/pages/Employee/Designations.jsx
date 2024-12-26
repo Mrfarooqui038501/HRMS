@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { departmentService } from '../../api/axios'; // Import department service
 
 const Designations = () => {
   const [designations, setDesignations] = useState([
@@ -7,7 +8,22 @@ const Designations = () => {
     { id: 3, title: 'Sales Lead', department: 'Sales' },
   ]);
 
+  const [departments, setDepartments] = useState([]); // For department list
   const [newDesignation, setNewDesignation] = useState({ title: '', department: '' });
+
+  // Fetch all departments on component mount
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const data = await departmentService.getAllDepartments(); // Fetch departments from backend
+        setDepartments(data);
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
 
   const handleAddDesignation = () => {
     if (newDesignation.title && newDesignation.department) {
@@ -16,6 +32,8 @@ const Designations = () => {
         { id: Date.now(), ...newDesignation },
       ]);
       setNewDesignation({ title: '', department: '' }); // Reset input fields
+    } else {
+      alert('Please fill out all fields before adding a designation.');
     }
   };
 
@@ -28,14 +46,6 @@ const Designations = () => {
       <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-lg p-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold text-gray-800">Designations</h2>
-          <div>
-            <button
-              onClick={handleAddDesignation}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Add Designation
-            </button>
-          </div>
         </div>
 
         {/* New Designation Form */}
@@ -47,13 +57,24 @@ const Designations = () => {
             placeholder="Designation Title"
             className="w-full p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <input
-            type="text"
+          <select
             value={newDesignation.department}
             onChange={(e) => setNewDesignation({ ...newDesignation, department: e.target.value })}
-            placeholder="Department"
             className="w-full p-4 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          >
+            <option value="">Select Department</option>
+            {departments.map((department) => (
+              <option key={department.departmentId} value={department.name}>
+                {department.name}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={handleAddDesignation}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Add Designation
+          </button>
         </div>
 
         {/* Designation List */}

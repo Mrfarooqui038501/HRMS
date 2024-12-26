@@ -23,3 +23,19 @@ exports.getAllHolidays = async (req, res) => {
     res.status(500).json({ message: "Error fetching holidays", error });
   }
 };
+
+// Admin - Remove Holiday
+exports.removeHoliday = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedHoliday = await Holiday.findByIdAndDelete(id);
+
+    if (!deletedHoliday) {
+      return res.status(404).json({ message: "Holiday not found" });
+    }
+
+    res.status(200).json({ message: "Holiday removed", holiday: deletedHoliday });
+  } catch (error) {
+    res.status(500).json({ message: "Error removing holiday", error });
+  }
+};

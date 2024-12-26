@@ -3,10 +3,10 @@ const Goal = require("../../models/performance/Goal");
 // Employee - Create a Goal
 exports.createGoal = async (req, res) => {
   try {
-    const { goalType, subject, startDate, endDate, description } = req.body;
+    const {employee, goalType, subject, startDate, endDate, description } = req.body;
 
     const goal = new Goal({
-      employee: req.user.id,
+      employee,
       goalType,
       subject,
       startDate,

@@ -94,3 +94,48 @@ export const leaveService = {
   },
   
 };
+
+export const overtimeService = {
+  getOvertimeByEmployee: async (employeeId, year, month) => {
+    const response = await api.get('/overtime', { params: { employeeId, year, month } });
+    return response.data;
+  },
+
+  addOvertime: async (overtimeData) => {
+    const response = await api.post('/overtime', overtimeData);
+    return response.data;
+  },
+
+  updateOvertimeStatus: async (overtimeId, status) => {
+    const response = await api.put('/overtime/status', { overtimeId, status });
+    return response.data;
+  },
+};
+
+export const timesheetService = {
+  // Get time sheets for a specific employee
+  getTimeSheetsByEmployee: async (employeeId) => {
+    const response = await api.get(`/employee/${employeeId}`);
+    return response.data;
+  },
+
+  // Add a new time sheet entry
+  addTimeSheet: async (timeSheetData) => {
+    const response = await api.post('/', timeSheetData);
+    return response.data;
+  },
+
+  // Update an existing time sheet entry
+  updateTimeSheet: async (timeSheetId, timeSheetData) => {
+    const response = await api.put(`/${timeSheetId}`, timeSheetData);
+    return response.data;
+  },
+
+  // Delete a time sheet entry
+  deleteTimeSheet: async (timeSheetId) => {
+    const response = await api.delete(`/${timeSheetId}`);
+    return response.data;
+  },
+};
+
+

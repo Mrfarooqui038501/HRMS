@@ -6,6 +6,9 @@ const employeeController = require("../controllers/employee/employeeController")
 const holidayController = require("../controllers/employee/holidayController");
 const leaveController = require("../controllers/employee/leaveController");
 const designationController = require("../controllers/employee/designationController")
+const adminLeaveController = require('../controllers/employee/adminLeaveController'); 
+const overTimeController = require('../controllers/employee/overTimeController')
+const timesheetController  = require('../controllers/employee/timeSheetController')
 
 const router = express.Router();
 
@@ -43,5 +46,28 @@ router.put("/leave-status", leaveController.updateLeaveStatus);
 // Designation Routes
 router.post("/designation", designationController.addDesignation); 
 router.get("/designations", designationController.getAllDesignations); 
+
+// Leave request routes
+// router.post("/leave-request", adminLeaveController.createLeaveRequest);
+router.get("/leave-requests", adminLeaveController.getAllLeaveRequests);
+router.put("/leave-request/:id", adminLeaveController.updateLeaveStatus);
+// router.delete("/leave-request/:id", adminLeaveController.deleteLeaveRequest);
+
+// Overtime Routes
+router.get('/overtime', overTimeController.getOvertimeByEmployee);
+router.post('/overtime', overTimeController.addOvertime);
+router.put('/overtime/status', overTimeController.updateOvertimeStatus);
+
+//TimeSheet Routes
+router.get('/timesheets', timesheetController.getTimeSheetsByEmployee);
+
+// Add a new time sheet entry
+router.post('/timesheet', timesheetController.addTimeSheet);
+
+// Update an existing time sheet entry
+router.put('/timesheet/:timeSheetId', timesheetController.updateTimeSheet);
+
+// Delete a time sheet entry
+router.delete('/timesheet/:timeSheetId', timesheetController.deleteTimeSheet);
 
 module.exports = router;

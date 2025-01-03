@@ -113,29 +113,38 @@ export const overtimeService = {
 };
 
 export const timesheetService = {
-  // Get time sheets for a specific employee
   getTimeSheetsByEmployee: async (employeeId) => {
-    const response = await api.get(`/employee/${employeeId}`);
-    return response.data;
+    const response = await api.get(`/employee/timesheet/${employeeId}`);
+    return response;
   },
 
-  // Add a new time sheet entry
+
   addTimeSheet: async (timeSheetData) => {
-    const response = await api.post('/', timeSheetData);
-    return response.data;
+    // Change this line:
+    const response = await api.post('/employee/timesheet/create', timeSheetData);
+    return response;
   },
 
-  // Update an existing time sheet entry
   updateTimeSheet: async (timeSheetId, timeSheetData) => {
-    const response = await api.put(`/${timeSheetId}`, timeSheetData);
-    return response.data;
+    try {
+      const response = await api.put(`/api/employee/timesheet/update/${timeSheetId}`, timeSheetData);
+      return response.data;
+    } catch (error) {
+      console.error('Service error:', error);
+      throw error;
+    }
   },
 
-  // Delete a time sheet entry
   deleteTimeSheet: async (timeSheetId) => {
-    const response = await api.delete(`/${timeSheetId}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/api/employee/timesheet/delete/${timeSheetId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Service error:', error);
+      throw error;
+    }
   },
 };
+
 
 

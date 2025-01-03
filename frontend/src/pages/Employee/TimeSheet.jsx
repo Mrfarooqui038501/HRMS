@@ -13,40 +13,59 @@ const TimeSheet = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Fetch employees on component mount
   useEffect(() => {
     const fetchEmployees = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const employeesResponse = await employeeService.getAllEmployees();
-        console.log("Employee API Response:", employeesResponse);
-
-        // Ensure employees have _id and name properties
-        const formattedEmployees = employeesResponse.data?.map((employee) => ({
-          _id: employee._id || employee.employeeId, // Adjust based on your backend
-          name: employee.name || employee.fullName, // Adjust based on your backend
-        }));
-
-        setEmployees(formattedEmployees || []); 
+        const response = await employeeService.getAllEmployees();
+        
+        // Remove the .data check since response is already the data
+        if (!response) {
+          throw new Error('Invalid response format from API');
+        }
+  
+       
+  
+        // Adjust the data structure check
+        const employeeData = Array.isArray(response) ? response : response.employees || [];
+  
+        const formattedEmployees = employeeData.map(employee => {
+          if (!employee) return null;
+          return {
+            _id: employee._id || employee.id || employee.employeeId,
+            name: employee.name || employee.fullName || `${employee.firstName} ${employee.lastName}`.trim()
+          };
+        }).filter(Boolean);
+  
+        // console.log('Formatted employees:', formattedEmployees);
+        setEmployees(formattedEmployees);
       } catch (error) {
         console.error('Error fetching employees:', error);
-        setEmployees([]); // Fallback to an empty array
+        setError('Failed to load employees. Please try again later.');
+        setEmployees([]);
+      } finally {
+        setLoading(false);
       }
     };
-
+  
     fetchEmployees();
   }, []);
 
-  // Fetch time sheets when an employee is selected
+  // Rest of the existing useEffect hooks and handlers remain the same
   useEffect(() => {
     const fetchTimeSheets = async () => {
       if (selectedEmployee) {
         try {
           const response = await timesheetService.getTimeSheetsByEmployee(selectedEmployee);
-          setTimeSheetData(response.data || []); // Default to an empty array
+          setTimeSheetData(response.data || []);
         } catch (error) {
           console.error('Error fetching time sheets:', error);
-          setTimeSheetData([]); // Fallback to an empty array
+          setTimeSheetData([]);
         }
       }
     };
@@ -54,18 +73,16 @@ const TimeSheet = () => {
     fetchTimeSheets();
   }, [selectedEmployee]);
 
-  // Handle employee selection
+  // Existing handlers remain the same
   const handleEmployeeChange = (e) => {
     setSelectedEmployee(e.target.value);
   };
 
-  // Handle input changes in the form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewTimeSheet((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Add a new time sheet entry
   const handleAddTimeSheet = async () => {
     try {
       if (selectedEmployee && newTimeSheet.date && newTimeSheet.hours && newTimeSheet.task) {
@@ -74,18 +91,17 @@ const TimeSheet = () => {
           ...newTimeSheet,
         });
 
-        setTimeSheetData([...timeSheetData, response.data]); // Update the time sheet list
-        setNewTimeSheet({ employeeId: '', date: '', hours: '', task: '' }); // Reset the form
+        setTimeSheetData([...timeSheetData, response.data]);
+        setNewTimeSheet({ employeeId: '', date: '', hours: '', task: '' });
       } else {
         alert('Please fill in all fields');
       }
     } catch (error) {
-      console.error('Error adding time sheet:', error);
+      // console.error('Error adding time sheet:', error);
       alert('Failed to add time sheet');
     }
   };
 
-  // Edit an existing time sheet entry
   const handleEditTimeSheet = (timeSheet) => {
     setNewTimeSheet({
       date: timeSheet.date,
@@ -96,11 +112,9 @@ const TimeSheet = () => {
     setEditingId(timeSheet._id);
   };
 
-  // Save the edited time sheet entry
   const handleSaveEdit = async () => {
     try {
       const response = await timesheetService.updateTimeSheet(editingId, newTimeSheet);
-
       const updatedTimeSheets = timeSheetData.map((item) =>
         item._id === editingId ? response.data : item
       );
@@ -108,51 +122,55 @@ const TimeSheet = () => {
       setIsEditing(false);
       setNewTimeSheet({ employeeId: '', date: '', hours: '', task: '' });
     } catch (error) {
-      console.error('Error updating time sheet:', error);
+      // console.error('Error updating time sheet:', error);
       alert('Failed to update time sheet');
     }
   };
 
-  // Delete a time sheet entry
   const handleDeleteTimeSheet = async (timeSheetId) => {
     try {
       await timesheetService.deleteTimeSheet(timeSheetId);
-
       const updatedTimeSheets = timeSheetData.filter((item) => item._id !== timeSheetId);
       setTimeSheetData(updatedTimeSheets);
     } catch (error) {
       console.error('Error deleting time sheet:', error);
       alert('Failed to delete time sheet');
     }
-  }
+  };
 
-  
   return (
     <div className="max-w-7xl mx-auto p-6 bg-gray-100 mt-10">
       <div className="text-center mb-6">
         <h2 className="text-3xl font-bold text-gray-800">Time Sheet</h2>
       </div>
 
-      {/* Employee Dropdown */}
-      <div className="flex justify-center mb-6">
-        <select
-          value={selectedEmployee}
-          onChange={handleEmployeeChange}
-          className="border border-gray-300 rounded-md p-2 text-lg w-1/3"
-        >
-          <option value="">Select Employee</option>
-          {employees.length > 0 ? (
-            employees.map((employee) => (
-              <option key={employee._id} value={employee._id}>
-                {employee.name}
-              </option>
-            ))
-          ) : (
-            <option disabled>No Employees Found</option>
-          )}
-        </select>
+      {/* Employee Dropdown with Loading and Error States */}
+      <div className="flex flex-col items-center mb-6">
+        {loading ? (
+          <div className="text-gray-600">Loading employees...</div>
+        ) : error ? (
+          <div className="text-red-500">{error}</div>
+        ) : (
+          <select
+            value={selectedEmployee}
+            onChange={handleEmployeeChange}
+            className="border border-gray-300 rounded-md p-2 text-lg w-1/3"
+          >
+            <option value="">Select Employee</option>
+            {employees.length > 0 ? (
+              employees.map((employee) => (
+                <option key={employee._id} value={employee._id}>
+                  {employee.name}
+                </option>
+              ))
+            ) : (
+              <option disabled>No Employees Found</option>
+            )}
+          </select>
+        )}
       </div>
 
+      {/* Rest of the component remains the same */}
       {/* Add/Edit Time Sheet Form */}
       <div className="bg-white p-6 rounded-md shadow-md mb-6">
         <h3 className="text-2xl font-medium mb-4">

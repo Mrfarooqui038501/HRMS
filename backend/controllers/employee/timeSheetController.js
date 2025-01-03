@@ -2,18 +2,22 @@ const TimeSheet = require('../../models/employee/Timesheet');
 const Employee = require('../../models/employee/Employee'); 
 
 // Fetch all time sheets for a given employee
+// Fetch all time sheets for a given employee (updated to use path parameter)
 exports.getTimeSheetsByEmployee = async (req, res) => {
-  const { employeeId } = req.query; // Get employeeId from query parameter
+  const { employeeId } = req.params; // Use params instead of query
 
   try {
-    // Fetch all time sheets for the employee
     const timeSheets = await TimeSheet.find({ employeeId }).populate('employeeId');
+    if (!timeSheets || timeSheets.length === 0) {
+      return res.status(404).json({ success: false, error: 'No time sheets found for this employee' });
+    }
     res.status(200).json({ success: true, data: timeSheets });
   } catch (error) {
     console.error('Error fetching time sheets:', error);
     res.status(500).json({ success: false, error: 'Server Error' });
   }
 };
+
 
 // Add a new time sheet entry
 exports.addTimeSheet = async (req, res) => {

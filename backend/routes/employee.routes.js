@@ -59,15 +59,9 @@ router.post('/overtime', overTimeController.addOvertime);
 router.put('/overtime/status', overTimeController.updateOvertimeStatus);
 
 //TimeSheet Routes
-router.get('/timesheets', timesheetController.getTimeSheetsByEmployee);
-
-// Add a new time sheet entry
-router.post('/timesheet', timesheetController.addTimeSheet);
-
-// Update an existing time sheet entry
-router.put('/timesheet/:timeSheetId', timesheetController.updateTimeSheet);
-
-// Delete a time sheet entry
-router.delete('/timesheet/:timeSheetId', timesheetController.deleteTimeSheet);
+router.get('/timesheet/:employeeId', timesheetController.getTimeSheetsByEmployee);
+router.post('/timesheet/create', timesheetController.addTimeSheet);
+router.put('/timesheet/update/:timeSheetId', timesheetController.updateTimeSheet);
+router.delete('/timesheet/delete/:timeSheetId', timesheetController.deleteTimeSheet);
 
 module.exports = router;

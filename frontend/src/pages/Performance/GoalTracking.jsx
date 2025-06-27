@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { goalService } from "../../api/axios";
 
 const GoalTracking = () => {
-  // State to store goals
   const [goals, setGoals] = useState([]);
   const [goal, setGoal] = useState({
     goalType: "",
@@ -9,190 +9,194 @@ const GoalTracking = () => {
     startDate: "",
     endDate: "",
     description: "",
-    status: "",
   });
-
-  // State to manage dropdown visibility
   const [isFormOpen, setIsFormOpen] = useState(false);
-
-  // State to track if editing a goal
   const [isEditing, setIsEditing] = useState(false);
-  const [editingIndex, setEditingIndex] = useState(null);
+  const [editingGoalId, setEditingGoalId] = useState(null);
 
-  // Function to handle form input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setGoal((prevGoal) => ({ ...prevGoal, [name]: value }));
-  };
+  useEffect(() => {
+    fetchGoals();
+  }, []);
 
-  // Function to add a goal
-  const handleAddGoal = () => {
-    if (goal.goalType && goal.subject && goal.startDate && goal.endDate && goal.description && goal.status) {
-      setGoals([...goals, goal]);
-      setGoal({
-        goalType: "",
-        subject: "",
-        startDate: "",
-        endDate: "",
-        description: "",
-        status: "",
-      });
-      setIsFormOpen(false); // Close the form after adding
-    } else {
-      alert("Please fill in all fields.");
+  const fetchGoals = async () => {
+    try {
+      const data = await goalService.getAllGoals();
+      setGoals(data);
+    } catch (error) {
+      console.error("Error fetching goals:", error);
+      alert("Failed to fetch goals");
     }
   };
 
-  // Function to delete a goal
-  const handleDeleteGoal = (index) => {
-    const updatedGoals = goals.filter((_, idx) => idx !== index);
-    setGoals(updatedGoals);
+  const handleAddGoal = async () => {
+    try {
+      if (Object.values(goal).some(field => field === '')) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+      
+      await goalService.createGoal(goal);
+      fetchGoals();
+      resetForm();
+      alert("Goal added successfully!");
+    } catch (error) {
+      console.error("Error adding goal:", error);
+      alert(error.response?.data?.message || "Failed to add goal");
+    }
   };
 
-  // Function to edit a goal (populate the form with the goal's data)
-  const handleEditGoal = (index) => {
+  const handleEditGoal = (selectedGoal) => {
     setIsEditing(true);
-    setEditingIndex(index);
-    setGoal(goals[index]);
-    setIsFormOpen(true); // Open the form for editing
+    setEditingGoalId(selectedGoal._id);
+    setGoal({
+      goalType: selectedGoal.goalType,
+      subject: selectedGoal.subject,
+      startDate: new Date(selectedGoal.startDate).toISOString().split('T')[0],
+      endDate: new Date(selectedGoal.endDate).toISOString().split('T')[0],
+      description: selectedGoal.description,
+    });
+    setIsFormOpen(true);
   };
 
-  // Function to save the edited goal
-  const handleSaveGoal = () => {
-    if (goal.goalType && goal.subject && goal.startDate && goal.endDate && goal.description && goal.status) {
-      const updatedGoals = goals.map((g, index) =>
-        index === editingIndex ? goal : g
-      );
-      setGoals(updatedGoals);
-      setGoal({
-        goalType: "",
-        subject: "",
-        startDate: "",
-        endDate: "",
-        description: "",
-        status: "",
-      });
-      setIsEditing(false);
-      setEditingIndex(null);
-      setIsFormOpen(false); // Close the form after saving
-    } else {
-      alert("Please fill in all fields.");
+  const handleSaveGoal = async () => {
+    try {
+      if (Object.values(goal).some(field => field === '')) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
+      await goalService.updateGoal(editingGoalId, goal);
+      fetchGoals();
+      resetForm();
+      alert("Goal updated successfully!");
+    } catch (error) {
+      console.error("Error saving goal:", error);
+      alert("Failed to save goal");
     }
+  };
+
+  const handleDeleteGoal = async (goalId) => {
+    if (window.confirm("Are you sure you want to delete this goal?")) {
+      try {
+        await goalService.deleteGoal(goalId);
+        fetchGoals();
+        alert("Goal deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting goal:", error);
+        alert("Failed to delete goal");
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setGoal({
+      goalType: "",
+      subject: "",
+      startDate: "",
+      endDate: "",
+      description: "",
+    });
+    setIsEditing(false);
+    setEditingGoalId(null);
+    setIsFormOpen(false);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
   };
 
   return (
     <div className="container mx-auto p-4 mt-10">
       <h1 className="text-3xl font-semibold text-orange-600 mb-6">Goal Tracking</h1>
 
-      {/* Toggle Form Button */}
       <button
         onClick={() => {
           setIsFormOpen(!isFormOpen);
-          setIsEditing(false); // Reset editing mode when toggling the form
-          setGoal({
-            goalType: "",
-            subject: "",
-            startDate: "",
-            endDate: "",
-            description: "",
-            status: "",
-          });
+          resetForm();
         }}
         className="mb-6 bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 transition"
       >
         {isFormOpen ? "Cancel" : "Add Goal"}
       </button>
 
-      {/* Form for Adding/Editing Goals */}
       {isFormOpen && (
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
           <input
             type="text"
-            name="goalType"
-            value={goal.goalType}
             placeholder="Goal Type"
-            onChange={handleChange}
-            className="mb-4 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            value={goal.goalType}
+            onChange={(e) => setGoal({...goal, goalType: e.target.value})}
+            className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
+            required
           />
           <input
             type="text"
-            name="subject"
-            value={goal.subject}
             placeholder="Subject"
-            onChange={handleChange}
-            className="mb-4 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            value={goal.subject}
+            onChange={(e) => setGoal({...goal, subject: e.target.value})}
+            className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
+            required
           />
           <input
             type="date"
-            name="startDate"
             value={goal.startDate}
-            onChange={handleChange}
-            className="mb-4 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            onChange={(e) => setGoal({...goal, startDate: e.target.value})}
+            className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
+            required
           />
           <input
             type="date"
-            name="endDate"
             value={goal.endDate}
-            onChange={handleChange}
-            className="mb-4 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            onChange={(e) => setGoal({...goal, endDate: e.target.value})}
+            className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
+            required
           />
           <textarea
-            name="description"
-            value={goal.description}
             placeholder="Description"
-            onChange={handleChange}
-            className="mb-4 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-          />
-          <input
-            type="text"
-            name="status"
-            value={goal.status}
-            placeholder="Status"
-            onChange={handleChange}
-            className="mb-4 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            value={goal.description}
+            onChange={(e) => setGoal({...goal, description: e.target.value})}
+            className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
+            required
           />
           <button
             onClick={isEditing ? handleSaveGoal : handleAddGoal}
-            className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition"
+            className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700"
           >
-            {isEditing ? "Save Changes" : "Add Goal"}
+            {isEditing ? "Update Goal" : "Add Goal"}
           </button>
         </div>
       )}
 
-      {/* Goals Table */}
-      <div className="overflow-x-auto bg-white p-6 rounded-lg shadow-lg">
-        <table className="w-full table-auto">
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <table className="w-full">
           <thead>
-            <tr className="bg-orange-100 text-left text-orange-600">
-              <th className="px-4 py-2">Goal Type</th>
-              <th className="px-4 py-2">Subject</th>
-              <th className="px-4 py-2">Start Date</th>
-              <th className="px-4 py-2">End Date</th>
-              <th className="px-4 py-2">Description</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Actions</th>
+            <tr className="bg-orange-100">
+              <th className="p-2">Goal Type</th>
+              <th className="p-2">Subject</th>
+              <th className="p-2">Start Date</th>
+              <th className="p-2">End Date</th>
+              <th className="p-2">Description</th>
+              <th className="p-2">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {goals.map((goal, index) => (
-              <tr key={index} className="border-b hover:bg-orange-50">
-                <td className="px-4 py-2">{goal.goalType}</td>
-                <td className="px-4 py-2">{goal.subject}</td>
-                <td className="px-4 py-2">{goal.startDate}</td>
-                <td className="px-4 py-2">{goal.endDate}</td>
-                <td className="px-4 py-2">{goal.description}</td>
-                <td className="px-4 py-2">{goal.status}</td>
-                <td className="px-4 py-2">
-                  <button
-                    onClick={() => handleEditGoal(index)}
-                    className="bg-orange-500 text-white px-3 py-1 rounded-md hover:bg-orange-600 mr-2"
+            {goals.map((goal) => (
+              <tr key={goal._id} className="border-b">
+                <td className="p-2">{goal.goalType}</td>
+                <td className="p-2">{goal.subject}</td>
+                <td className="p-2">{formatDate(goal.startDate)}</td>
+                <td className="p-2">{formatDate(goal.endDate)}</td>
+                <td className="p-2">{goal.description}</td>
+                <td className="p-2">
+                  <button 
+                    onClick={() => handleEditGoal(goal)}
+                    className="bg-orange-500 text-white px-2 py-1 rounded mr-2 hover:bg-orange-600"
                   >
                     Edit
                   </button>
-                  <button
-                    onClick={() => handleDeleteGoal(index)}
-                    className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+                  <button 
+                    onClick={() => handleDeleteGoal(goal._id)}
+                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
                   >
                     Delete
                   </button>

@@ -7,6 +7,8 @@ const api = axios.create({
   withCredentials: true,
 });
 
+
+// Employee
 export const employeeService = {
   getAllEmployees: async () => {
     const response = await api.get('/employee/employees');
@@ -146,5 +148,29 @@ export const timesheetService = {
   },
 };
 
+// performance 
+
+// src/api/axios.js (or your API service file)
+export const goalService = {
+  getAllGoals: async () => {
+    const response = await api.get('/performance/goals');
+    return response.data;
+  },
+  
+  createGoal: async (goalData) => {
+    const response = await api.post('/performance/goals', goalData);
+    return response.data;
+  },
+
+  updateGoal: async (id, goalData) => {
+    const response = await api.put(`/performance/goals/${id}`, goalData);
+    return response.data;
+  },
+
+  deleteGoal: async (id) => {
+    const response = await api.delete(`/performance/goals/${id}`);
+    return response.data;
+  }
+};
 
 

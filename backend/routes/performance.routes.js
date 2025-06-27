@@ -12,8 +12,11 @@ const trainingTypeController = require("../controllers/performance/trainingTypeC
 const router = express.Router();
 
 // Goal Routes
-router.post("/goals",  goalController.createGoal);
-router.get("/goals",  goalController.getAllGoals);
+router.get("/goals", goalController.getAllGoals);
+router.post("/goals", goalController.createGoal);
+router.put("/goals/:id", goalController.updateGoal);
+router.delete("/goals/:id", goalController.deleteGoal);
+
 
 // Performance Routes
 router.post("/performances",  performanceController.addPerformance);
